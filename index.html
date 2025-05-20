@@ -28,6 +28,40 @@
             margin-bottom: 15px;
             text-align: left;
         }
+        .progress {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .option {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+        .option.correct {
+            background-color: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
+        }
+        .option.incorrect {
+            background-color: rgba(244, 67, 54, 0.3);
+            border-color: #F44336;
+        }
         .btn {
             padding: 10px 20px;
             background-color: #4CAF50;
@@ -41,6 +75,10 @@
         .btn:hover {
             background-color: #45a049;
         }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
         .result {
             margin-top: 20px;
             font-size: 18px;
@@ -51,54 +89,73 @@
         #result-container {
             display: none;
         }
-        #questions-container {
-            max-height: 500px;
-            overflow-y: auto;
-            margin-bottom: 20px;
+        #question-number {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
         }
-        .incorrect {
-            color: red;
+        #feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
         }
-        .correct {
-            color: green;
+        #feedback.correct {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
         }
-        .incorrect-answer {
-            color: red;
-        }
-        .unanswered {
-            color: orange;
+        #feedback.incorrect {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border: 1px solid #F44336;
         }
         #incorrect-questions-container {
             max-height: 400px;
             overflow-y: auto;
+            text-align: left;
+        }
+        .incorrect-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .incorrect-item .correct-answer {
+            color: #4CAF50;
+        }
+        .incorrect-item .incorrect-answer {
+            color: #F44336;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Test Interactivo - Examen PRL 23/05/2025 </h1>
+    <h1>Test Interactivo - Examen PRL 23/05/2025</h1>
 
     <!-- Botón para comenzar el test -->
     <button id="start-btn" class="btn" onclick="startTest()">Comenzar</button>
 
     <div id="test-container">
-        <form id="test-form">
-            <div id="questions-container">
-                <!-- Preguntas y respuestas generadas por JavaScript -->
-            </div>
-        </form>
-        <button id="finish-btn" class="btn" onclick="finishTest()">Finalizar</button>
+        <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="question-number"></div>
+        <div id="current-question" class="question"></div>
+        <div id="options-container"></div>
+        <div id="feedback"></div>
     </div>
 
     <div id="result-container">
         <div class="result">
+            <h2>Resultados</h2>
             <p id="score">Tu puntaje: 0</p>
             <p id="time">Tiempo: 0 segundos</p>
             <p id="correct-answers">Respuestas Correctas: 0</p>
             <p id="incorrect-answers">Respuestas Incorrectas: 0</p>
         </div>
-        <button id="view-incorrect-btn" class="btn" onclick="viewIncorrectAnswers()" style="display:none;">Ver preguntas malas</button>
+        <button id="view-incorrect-btn" class="btn" onclick="viewIncorrectAnswers()" style="display:none;">Ver preguntas incorrectas</button>
         <button id="restart-btn" class="btn" onclick="restartTest()">Reiniciar</button>
     </div>
 
@@ -111,296 +168,361 @@
 <script>
     const questions = [
         {
-            question: "Una iluminación o ventilación insuficiente son:",
+            question: "1. Una iluminación o ventilación insuficiente son:",
             options: {
                 a: "Actos inseguros",
                 b: "Condiciones inseguras",
                 c: "Equipos de protección individual",
-				d: "Técnicas preventivas"
+                d: "Técnicas preventivas"
             },
             correct: "b"
         },
         {
-            question: "¿Por qué se producen actos inseguros?",
+            question: "2. ¿Por qué se producen actos inseguros?",
             options: {
                 a: "Por deficientes funciones de mando",
                 b: "Por herramientas de trabajo inadecuadas",
-				c: "Por no saber qué hace",
-				d: "Todas las respuestas son correctas"
+                c: "Por no saber qué hace",
+                d: "Todas las respuestas son correctas"
             },
             correct: "d"
         },
         {
-            question: "¿Qué es la Seguridad en el trabajo?",
+            question: "3. ¿Qué es la Seguridad en el trabajo?",
             options: {
                 a: "Un equipo de trabajo",
                 b: "Una técnica de protección.",
                 c: "Una técnica preventiva de accidentes de trabajo",
-				d: "Una técnica preventiva de enfermedades profesionales"
+                d: "Una técnica preventiva de enfermedades profesionales"
             },
             correct: "c"
         },
         {
-            question: "Ante una carga excesiva, ¿qué debes hacer para evitar una lesión en la espalda?",
+            question: "4. Ante una carga excesiva, ¿qué debes hacer para evitar una lesión en la espalda?",
             options: {
                 a: "No moverla. Pedir que la mueva otro compañero",
                 b: "Pedir ayuda a un compañero para repartir la carga y transportarla de una sola vez",
                 c: "Todas las respuestas son válidas",
-				d: "Utilizar un carrito o una transpaleta manual"
+                d: "Utilizar un carrito o una transpaleta manual"
             },
             correct: "d"
         },
         {
-            question: "Antes de utilizar una radial, ¿qué medidas debo adoptar?",
+            question: "5. Antes de utilizar una radial, ¿qué medidas debo adoptar?",
             options: {
                 a: "Elegir el disco apropiado y en buen estado",
                 b: "Hablar con mi compañero e invitarle a que se acerque a mí",
                 c: "Ponerme ropa de alta visibilidad",
-				d: "Todas las respuestas son válidas"
+                d: "Todas las respuestas son válidas"
             },
             correct: "a"
         },
         {
-            question: "Cuando estés trabajando sobre una maquinaria de elevación de personas…",
+            question: "6. Cuando estés trabajando sobre una maquinaria de elevación de personas…",
             options: {
                 a: "Debes comprobar que no se estén realizando trabajos simultáneamente por debajo ni en sus inmediaciones",
                 b: "Debes estar autorizado por la empresa",
                 c: "Debes tener una formación específica",
-				d: "Todas las respuestas son ciertas"
+                d: "Todas las respuestas son ciertas"
             },
             correct: "a"
         },
         {
-            question: "Cuando montes o desmontes protecciones colectivas en que exista riesgo de caída a distinto nivel:",
+            question: "7. Cuando montes o desmontes protecciones colectivas en que exista riesgo de caída a distinto nivel:",
             options: {
                 a: "Debes llevar contigo siempre el móvil por si te caes, para pedir auxilio",
                 b: "Debes utilizar equipos de protección anticaídas",
                 c: "La temperatura no afecta a la potencia",
-				d: "No es preciso que utilices equipos de protección individual si hay más compañeros contigo"
+                d: "No es preciso que utilices equipos de protección individual si hay más compañeros contigo"
             },
             correct: "b"
         },
         {
-            question: "Cuando trabajas sobre un andamio colgado debes…",
+            question: "8. Cuando trabajas sobre un andamio colgado debes…",
             options: {
                 a: "Amarrarte con el bloqueador anticaídas a la línea de vida",
                 b: "Pedir permiso a tu responsable",
                 c: "Ponerte el casco y los guantes, solamente",
-				d: "Todas las respuestas son válidas"
+                d: "Todas las respuestas son válidas"
             },
             correct: "a"
         },
         {
-            question: "Cuando trabajes sobre un andamio modular puedes subirte a las barandillas",
+            question: "9. Cuando trabajes sobre un andamio modular puedes subirte a las barandillas",
             options: {
                 a: "No, nunca",
                 b: "Sí, depende de las circunstancias",
                 c: "Sí, si tengo que ayudar a un compañero",
-				d: "Sí, claro"
+                d: "Sí, claro"
             },
             correct: "a"
         },
         {
-            question: "El funcionamiento de un EPI anticaídas con dispositivo anticaída retráctil es similar:",
+            question: "10. El funcionamiento de un EPI anticaídas con dispositivo anticaída retráctil es similar:",
             options: {
                 a: "A un motor hidráulico",
                 b: "A una tirachinas",
                 c: "A una palanca de cambios",
-				d: "Al cinturón de seguridad de un vehículo"
+                d: "Al cinturón de seguridad de un vehículo"
             },
             correct: "d"
         },
         {
-            question: " El arnés de seguridad debe ajustarse…",
+            question: "11. El vestuario de trabajo debe ser siempre muy holgado para que no sea molesto",
             options: {
                 a: "No, nunca",
                 b: "No, salvo que el trabajador tenga sobrepeso",
-                c: "No, depende de si el trabajador está muy delgado",
-				d: "Sí, siempre"
+                c: "Si, depende de si el trabajador está muy delgado",
+                d: "Sí, siempre"
             },
             correct: "d"
         },
         {
-            question: "La escalera de mano debe colocarse formando un ángulo aproximado de…",
+            question: "12. La escalera de mano debe colocarse formando un ángulo aproximado de…",
             options: {
                 a: "75° con la horizontal",
                 b: "75° con la vertical",
                 c: "85° con la horizontal",
-				d: "85° con la vertical"
+                d: "85° con la vertical"
             },
             correct: "c"
         },
         {
-            question: "La señalización es un medio de protección o de prevención",
+            question: "13. La señalización es un medio de protección o de prevención",
             options: {
                 a: "Depende de las circunstancias",
                 b: "No",
                 c: "Sí, a veces",
-				d: "Sí, siempre"
+                d: "Sí, siempre"
             },
             correct: "d"
         },
         {
-            question: "Los protectores auditivos…",
+            question: "14. Los protectores auditivos…",
             options: {
                 a: "Deben utilizarse cuando el trabajador escuche algún sonido",
                 b: "Deben utilizarse siempre",
                 c: "Eliminan el ruido, para proteger el oído",
-				d: "Reducen los niveles sonoros para proteger el oído"
+                d: "Reducen los niveles sonoros para proteger el oído"
             },
             correct: "d"
         },
         {
-            question: "Si el punto de trabajo está alejado de la posición de la escalera manual…",
+            question: "15. Si el punto de trabajo está alejado de la posición de la escalera manual…",
             options: {
                 a: "Dejar de trabajar",
                 b: "Debes desplazar la escalera y volver a subirte",
                 c: "Debes inclinarte todo lo que puedas",
-				d: "Debes utilizar otro equipo de trabajo"
+                d: "Debes utilizar otro equipo de trabajo"
             },
             correct: "b"
         },
         {
-            question: "Si necesitas trabajar a más altura de la que consigues con el andamio de borriquetas debes…",
+            question: "16. Si necesitas trabajar a más altura de la que consigues con el andamio de borriquetas debes…",
             options: {
                 a: "Dejar de trabajar",
                 b: "Hablar con tu responsable",
                 c: "Montar un módulo de andamio",
-				d: "Utilizar una caja de eleve"
+                d: "Utilizar una caja de eleve"
             },
             correct: "c"
         },
         {
-            question: "Si te encuentras trabajando en cuclillas o de rodillas y tienes que mover cargas...",
+            question: "17. Si te encuentras trabajando en cuclillas o de rodillas y tienes que mover cargas...",
             options: {
                 a: "Procura ajustar el tiempo que estás agachado y erguido",
                 b: "Procura encontrar la postura en la que te encuentres más cómodo",
                 c: "Procura mantener la postura mucho tiempo porque es muy cómoda",
-				d: "Procura no moverte mucho"
+                d: "Procura no moverte mucho"
             },
             correct: "a"
         },
         {
-            question: "Un equipo de protección individual tiene como finalidad:",
+            question: "18. Un equipo de protección individual tiene como finalidad:",
             options: {
                 a: "Proteger a todos los trabajadores que estén expuestos a un mismo riesgo",
                 b: "Proteger al trabajador de uno o varios riesgos que puedan amenazar su seguridad o salud",
                 c: "Proteger al trabajador en caso de que actúe incorrectamente",
-				d: "Señalizar dónde se encuentra un trabajador"
+                d: "Señalizar dónde se encuentra un trabajador"
             },
             correct: "b"
         },
         {
-            question: "¿Cuándo se puede utilizar señalización con cinta?",
+            question: "19. ¿Cuándo se puede utilizar señalización con cinta?",
             options: {
                 a: "En zonas de trabajo en las que se presenta el riesgo de choque o golpe",
                 b: "En zonas de trabajo en las que se presentan riesgos de caída de objetos",
                 c: "En zonas de trabajo en las que se presentan riesgos de caída de personas",
-				d: "Todas las respuestas son válidas"
+                d: "Todas las respuestas son válidas"
             },
             correct: "d"
         },
         {
-            question: "¿Cómo debes ascender, descender y trabajar en la escalera de mano?",
+            question: "20. ¿Cómo debes ascender, descender y trabajar en la escalera de mano?",
             options: {
                 a: "Como puedas",
                 b: "De espaldas a la escalera, con las manos libres y con dos puntos de apoyo",
                 c: "De frente a la escalera, con las manos libres y con dos puntos de apoyo",
-				d: "De frente a la escalera, con las manos libres y con tres puntos de apoyo"
+                d: "De frente a la escalera, con las manos libres y con tres puntos de apoyo"
             },
             correct: "d"
         },
         {
-            question: "¿Cómo debes levantar las cargas?",
+            question: "21. ¿Cómo debes levantar las cargas?",
             options: {
                 a: "Doblando la cintura y agachándote",
                 b: "Empujarla hasta que un compañero me pueda ayudar",
                 c: "Flexionando las rodillas hasta poder coger la carga cómodamente y manteniendo la espalda recta",
-				d: "Sentándote y con los brazos en alto"
+                d: "Sentándote y con los brazos en alto"
             },
             correct: "c"
         },
         {
-            question: "¿Deben estar etiquetados los recipientes de los productos químicos?",
+            question: "22. ¿Deben estar etiquetados los recipientes de los productos químicos?",
             options: {
                 a: "No es preciso",
                 b: "No, nunca",
                 c: "Sí, cuando el fabricante lo haya etiquetado",
-				d: "Sí, siempre"
+                d: "Sí, siempre"
             },
             correct: "d"
         },
         {
-            question: "¿En qué trabajos de los siguientes deberás emplear una mascarilla?",
+            question: "23. ¿En qué trabajos de los siguientes deberás emplear una mascarilla?",
             options: {
                 a: "Colocar una instalación eléctrica",
                 b: "En todos los trabajos anteriores",
                 c: "Movimiento de tierras y demoliciones",
-				d: "Poner ladrillos"
+                d: "Poner ladrillos"
             },
             correct: "c"
         },
         {
-            question: "¿Puedo utilizar adaptadores para las conexiones de los cuadros eléctricos?",
+            question: "24. ¿Puedo utilizar adaptadores para las conexiones de los cuadros eléctricos?",
             options: {
                 a: "No, nunca",
                 b: "Sí, cuando me lo autorice el delegado de prevención",
-                c: " Sí, siempre que estén en buen estado",
-				d: "Sí, sin problema"
+                c: "Sí, siempre que estén en buen estado",
+                d: "Sí, sin problema"
             },
             correct: "a"
         },
         {
-            question: "¿Quién puede manipular la red de alimentación aérea?",
+            question: "25. ¿Quién puede manipular la red de alimentación aérea?",
             options: {
                 a: "Cualquier trabajador",
                 b: "El jefe de obra",
                 c: "Personal autorizado de la empresa suministradora",
-				d: "Personal autorizado de mi empresa"
+                d: "Personal autorizado de mi empresa"
             },
             correct: "c"
         }
-        
     ];
 
+    let currentQuestionIndex = 0;
     let answers = [];
     let incorrectQuestions = [];
     let startTime;
+    let optionsLocked = false;
+    const delayBetweenQuestions = 2000; // 2 segundos
 
     // Función para empezar el test
     function startTest() {
         document.getElementById("start-btn").style.display = "none";
         document.getElementById("test-container").style.display = "block";
-        loadQuestions();
+        loadQuestion(currentQuestionIndex);
         startTime = Date.now(); // Inicia el cronómetro
     }
 
-    // Función para cargar las preguntas
-    function loadQuestions() {
-        const questionsContainer = document.getElementById("questions-container");
-        questions.forEach((question, index) => {
-            let questionHtml = `
-                <div class="question">
-                    <p><strong>Pregunta ${index + 1}:</strong> ${question.question}</p>
-            `;
-            
-            for (let option in question.options) {
-                questionHtml += `
-                    <label>
-                        <input type="radio" name="q${index}" value="${option}" onclick="saveAnswer(${index}, '${option}')">
-                        ${option}) ${question.options[option]}
-                    </label><br>
-                `;
-            }
+    // Función para cargar una pregunta
+    function loadQuestion(index) {
+        optionsLocked = false;
+        const questionElement = document.getElementById("current-question");
+        const optionsContainer = document.getElementById("options-container");
+        const question = questions[index];
+        const progressBar = document.getElementById("progress-bar");
+        const questionNumber = document.getElementById("question-number");
+        const feedback = document.getElementById("feedback");
+        
+        // Actualizar la barra de progreso
+        const progress = ((index + 1) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Mostrar el número de pregunta actual
+        questionNumber.textContent = `Pregunta ${index + 1} de ${questions.length}`;
+        
+        // Mostrar la pregunta
+        questionElement.innerHTML = `<p><strong>${question.question}</strong></p>`;
+        
+        // Limpiar opciones anteriores y mostrar nuevas opciones
+        optionsContainer.innerHTML = "";
+        for (let option in question.options) {
+            const optionElement = document.createElement("div");
+            optionElement.className = "option";
+            optionElement.setAttribute("data-option", option);
+            optionElement.textContent = `${option}) ${question.options[option]}`;
+            optionElement.addEventListener("click", function() {
+                if (!optionsLocked) {
+                    selectOption(this, option, index);
+                }
+            });
+            optionsContainer.appendChild(optionElement);
+        }
 
-            questionHtml += `</div>`;
-            questionsContainer.innerHTML += questionHtml;
-        });
+        // Ocultar el feedback
+        feedback.style.display = "none";
+        feedback.className = ""; // Limpiar clases anteriores
     }
 
-    // Función para guardar la respuesta seleccionada
-    function saveAnswer(questionIndex, answer) {
-        answers[questionIndex] = answer;
+    // Función para seleccionar una opción
+    function selectOption(element, option, questionIndex) {
+        optionsLocked = true;
+        const feedback = document.getElementById("feedback");
+        const correctOption = questions[questionIndex].correct;
+        
+        // Guardar la respuesta
+        answers[questionIndex] = option;
+        
+        // Mostrar respuesta correcta e incorrecta
+        const options = document.querySelectorAll(".option");
+        
+        options.forEach(opt => {
+            const optValue = opt.getAttribute("data-option");
+            if (optValue === correctOption) {
+                opt.classList.add("correct");
+            }
+            if (optValue === option && option !== correctOption) {
+                opt.classList.add("incorrect");
+            }
+        });
+        
+        // Mostrar feedback
+        if (option === correctOption) {
+            feedback.textContent = "¡Correcto!";
+            feedback.className = "correct";
+        } else {
+            feedback.textContent = `Incorrecto. La respuesta correcta es: ${correctOption}) ${questions[questionIndex].options[correctOption]}`;
+            feedback.className = "incorrect";
+            
+            // Guardar pregunta incorrecta
+            incorrectQuestions.push({
+                question: questions[questionIndex].question,
+                selectedAnswer: option,
+                correctAnswer: correctOption,
+                questionNumber: questionIndex + 1
+            });
+        }
+        feedback.style.display = "block";
+        
+        // Avanzar a la siguiente pregunta después de un retraso
+        setTimeout(() => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            } else {
+                finishTest();
+            }
+        }, delayBetweenQuestions);
     }
 
     // Función para finalizar el test y mostrar resultados
@@ -409,21 +531,9 @@
         const timeTaken = Math.floor((endTime - startTime) / 1000); // Tiempo en segundos
 
         let correctAnswers = 0;
-        let incorrectAnswers = 0;
+        let incorrectAnswers = incorrectQuestions.length;
 
-        questions.forEach((question, index) => {
-            if (answers[index] === question.correct) {
-                correctAnswers++;
-            } else {
-                incorrectAnswers++;
-                incorrectQuestions.push({
-                    question: question.question,
-                    selectedAnswer: answers[index] || 'Sin responder',
-                    correctAnswer: question.correct,
-                    questionNumber: index + 1
-                });
-            }
-        });
+        correctAnswers = questions.length - incorrectAnswers;
 
         document.getElementById("score").textContent = `Tu puntaje: ${correctAnswers} de ${questions.length}`;
         document.getElementById("time").textContent = `Tiempo: ${timeTaken} segundos`;
@@ -442,22 +552,26 @@
     function viewIncorrectAnswers() {
         document.getElementById("incorrect-questions-container").style.display = "block";
         const incorrectQuestionsContainer = document.getElementById("incorrect-questions");
+        incorrectQuestionsContainer.innerHTML = "";
+        
         incorrectQuestions.forEach((item) => {
             const question = questions.find(q => q.question === item.question);
-            incorrectQuestionsContainer.innerHTML += `
-                <div>
-                    <p><strong>Pregunta ${item.questionNumber}:</strong> ${item.question}</p>
-                    <p class="${item.selectedAnswer === 'Sin responder' ? 'unanswered' : 'incorrect-answer'}">
-                        Tu respuesta: ${item.selectedAnswer === 'Sin responder' ? 'Sin responder' : `${item.selectedAnswer}) ${question.options[item.selectedAnswer]}`}
-                    </p>
-                    <p class="correct">
-                        Respuesta correcta: ${item.correctAnswer}) ${question.options[item.correctAnswer]}
-                    </p>
-                </div><br>
+            
+            const itemElement = document.createElement("div");
+            itemElement.className = "incorrect-item";
+            
+            itemElement.innerHTML = `
+                <p><strong>Pregunta ${item.questionNumber}:</strong> ${item.question}</p>
+                <p class="incorrect-answer">
+                    Tu respuesta: ${item.selectedAnswer}) ${question.options[item.selectedAnswer]}
+                </p>
+                <p class="correct-answer">
+                    Respuesta correcta: ${item.correctAnswer}) ${question.options[item.correctAnswer]}
+                </p>
             `;
+            
+            incorrectQuestionsContainer.appendChild(itemElement);
         });
-
-        document.getElementById("restart-btn").style.display = "inline-block";  // Asegurar que el botón de reiniciar se vea
     }
 
     // Función para reiniciar el test
@@ -465,6 +579,5 @@
         location.reload();
     }
 </script>
-
 </body>
 </html>
